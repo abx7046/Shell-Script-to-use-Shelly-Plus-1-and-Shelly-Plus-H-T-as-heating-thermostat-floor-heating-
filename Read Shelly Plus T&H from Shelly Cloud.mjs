@@ -32,13 +32,6 @@ let timeArray = [
         {Start: (21*60+01)*60, End: (22*60+29)*60, Value: 16.0},  // 21:01 - 22:29
         {Start: (22*60+30)*60, End: (23*60+59)*60, Value: 20.6}, // 22:30 - 23:59   
         ];
-   
- let Int0To23 = [
-     {HH:"00",h:0},{HH:"01",h:1},{HH:"02",h:2},{HH:"03",h:3},{HH:"04",h:4},{HH:"05",h:5},
-     {HH:"06",h:6},{HH:"07",h:7},{HH:"08",h:8},{HH:"09",h:9},{HH:"10",h:10},{HH:"11",h:11},
-     {HH:"12",h:12},{HH:"13",h:13},{HH:"14",h:14},{HH:"15",h:15},{HH:"16",h:16},{HH:"17",h:17},
-     {HH:"18",h:18},{HH:"19",h:19},{HH:"20",h:20},{HH:"21",h:21},{HH:"22",h:22},{HH:"23",h:23},
-  ];
              
 let tmpShellyCloud = {
       url: "https://shelly-50-eu.shelly.cloud",
@@ -47,11 +40,21 @@ let tmpShellyCloud = {
       auth_key: "<auth_key>"
      };
     
-function strtoint24(arg) {
-  for (let i=0; i< Int0To23.length; i++) {
-    if (arg === Int0To23[i].HH) {return Int0To23[i].h}
-}
-}
+function strtoint(arg) {
+  let Int0To9 = [{I: "0", i:0}, {I: "1", i:1}, {I: "2", i:2}, {I: "3", i:3}, {I: "4", i:4},
+                 {I: "5", i:5}, {I: "6", i:6}, {I: "7", i:7}, {I: "8", i:8}, {I: "9", i:9}];
+  let value = 0;
+  for (let j=0; j< arg.length; j++) {
+    let found = false;
+    for (let i=0; i< Int0To9.length; i++) {
+      if (arg[j] === Int0To9[i].I && found === false) {
+        value = value*10 + Int0To9[i].i;
+        found = true;
+      }; // of if
+    }; // of for
+  };
+  return value;
+};
 
 // this funciton is checking if the data as provided by Shelly.Cloud gets updated.
 // we are doing this to see if the device timestamp does change over the time      
@@ -82,7 +85,7 @@ function processHTTPDevice(result, error_code, error) {
    let json_time = JSON.parse(result.body)["data"]["device_status"]["sys"]["time"];
    if (json_time !== null && PARAM.UTCOffsetValidated === false) {
      let oldUTCOffset = PARAM.UTCOffset;
-     PARAM.UTCOffset = strtoint24(json_time.slice(0,2)) - Math.floor(UnixTime/60/60);  
+     PARAM.UTCOffset = strtoint(json_time.slice(0,2)) - Math.floor(UnixTime/60/60);  
      print("UTC Offset adj from ", oldUTCOffset," to ", PARAM.UTCOffset);
      PARAM.UTCOffsetValidated = true;
    };
